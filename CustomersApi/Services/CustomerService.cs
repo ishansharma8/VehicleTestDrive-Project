@@ -3,6 +3,7 @@ using CustomersApi.Data;
 using CustomersApi.Interfaces;
 using CustomersApi.Models;
 using Microsoft.EntityFrameworkCore;
+using Newtonsoft.Json;
 
 namespace CustomersApi.Services
 {
@@ -32,11 +33,13 @@ namespace CustomersApi.Services
             await using ServiceBusClient client = new(connectionString); // since ServiceBusClient implements IAsyncDisposable we create it with "await using"
 
             //This code is perfect to use but it will only send a string to the azure service bus. But we want to send the customer object. so we will first serialise the 
-            //customer object to json and then we will send the customer object(Pushing uptill here)
+            //customer object to json and then we will send the customer object.
+
+            var objectAsText = JsonConvert.SerializeObject(customer); //The serialise object will convert Customer Object into Json string
 
             ServiceBusSender sender = client.CreateSender(queueName);// create the sender
 
-            ServiceBusMessage message = new("Hello world!"); // create a message that we can send. UTF-8 encoding is used when providing a string.
+            ServiceBusMessage message = new ServiceBusMessage(objectAsText); // create a message that we can send. UTF-8 encoding is used when providing a string. shorthand  ServiceBusMessage message = new("Hello world!")
 
             // send the message
             await sender.SendMessageAsync(message);
